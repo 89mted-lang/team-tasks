@@ -3,7 +3,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Ïîêàçûâàòü ôàéëû èç ïàïêè public
+// ÐŸÐ¾ÐºÐ°Ð·Ñ‹Ð²Ð°Ñ‚ÑŒ Ñ„Ð°Ð¹Ð»Ñ‹ Ð¸Ð· Ð¿Ð°Ð¿ÐºÐ¸ public
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
@@ -11,7 +11,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Åñëè êòî-òî çàõîäèò íà ñàéò — ïîêàçûâàòü public/index.html
+// Ð•ÑÐ»Ð¸ ÐºÑ‚Ð¾-Ñ‚Ð¾ Ð—Ð°Ñ…Ð¾Ð´Ð¸Ñ‚ Ð½Ð° ÑÐ°Ð¹Ñ‚ - Ð¿Ð¾ÐºÐ°Ð·Ñ‹Ð²Ð°Ñ‚ÑŒ public/index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
