@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>График занятости сотрудников</title>
+  <title>Р“Р РђР¤РРљ Р—РђРќРЇРўРћРЎРўР РЎРћРўР РЈР”РќРРљРћР’</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- React production CDN -->
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
@@ -67,15 +67,15 @@
         window.removeEventListener('mousemove', onTimelineMouseMove);
         window.removeEventListener('mouseup', onTimelineMouseUp);
       }
-      // Данные и утилиты
+      // Р”Р°РЅРЅС‹Рµ Рё СѓС‚РёР»РёС‚С‹
       const BG_URL = "https://avatars.mds.yandex.net/get-altay/3923637/2a0000017651f1c40eebefa5d67c6f1daf46/XXXL";
-      const employees = ["КРОТОВ СЕРГЕЙ","АЛЛА ЕРОФЕЕВА","АЛЕКСЕЙ КОРОВИН","МАРИНА ЖУКОВА","ЕКАТЕРИНА СОНИНА"];
-      const monthNames = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
-      const typeMeta = { 'Задача': { color: '#4F8DFD' }, 'Отпуск': { color: '#F0AD4E' } };
+      const employees = ["РљР РћРўРћР’ РЎР•Р Р“Р•Р™","РђР›Р›Рђ Р•Р РћР¤Р•Р•Р’Рђ","РђР›Р•РљРЎР•Р™ РљРћР РћР’РРќ","РњРђР РРќРђ Р–РЈРљРћР’Рђ","Р•РљРђРўР•Р РРќРђ РЎРћРќРРќРђ"];
+      const monthNames = ['СЏРЅРІР°СЂСЊ','С„РµРІСЂР°Р»СЊ','РјР°СЂС‚','Р°РїСЂРµР»СЊ','РјР°Р№','РёСЋРЅСЊ','РёСЋР»СЊ','Р°РІРіСѓСЃС‚','СЃРµРЅС‚СЏР±СЂСЊ','РѕРєС‚СЏР±СЂСЊ','РЅРѕСЏР±СЂСЊ','РґРµРєР°Р±СЂСЊ'];
+      const typeMeta = { 'Р—РђР”РђР§Рђ': { color: '#4F8DFD' }, 'РћРўРџРЈРЎРљ': { color: '#F0AD4E' } };
       function fmtFull(date){
         const f=new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long',year:'numeric'});
         const p=f.formatToParts(date);
-        return `${p.find(x=>x.type==='day')?.value} ${p.find(x=>x.type==='month')?.value} ${p.find(x=>x.type==='year')?.value} года`;
+        return `${p.find(x=>x.type==='day')?.value} ${p.find(x=>x.type==='month')?.value} ${p.find(x=>x.type==='year')?.value} РіРѕРґР°`;
       }
       function fmtShort(date){
         const d=new Date(date);
@@ -85,25 +85,25 @@
       function statusOf(item,today){
         const s=new Date(item.start), e=new Date(item.end);
         const t0=new Date(today.getFullYear(),today.getMonth(),today.getDate());
-        if(e<t0) return 'завершенная';
-        if(s>today) return 'не начатая';
-        return 'активная';
+        if(e<t0) return 'Р·Р°РІРµСЂС€РµРЅРЅР°СЏ';
+        if(s>today) return 'РЅРµ РЅР°С‡Р°С‚Р°СЏ';
+        return 'Р°РєС‚РёРІРЅР°СЏ';
       }
       const initialData=[
-        { id:1, employee:'КРОТОВ СЕРГЕЙ', type:'Задача', title:'GLOBUS 4.0', start:'2025-08-01', end:'2025-09-10', comment:'' },
-        { id:2, employee:'КРОТОВ СЕРГЕЙ', type:'Задача', title:'Глобус 4.0', start:'2025-08-20', end:'2025-08-22', comment:'' },
-        { id:3, employee:'АЛЛА ЕРОФЕЕВА', type:'Задача', title:'Логистический склад 2 очередь', start:'2025-07-15', end:'2025-12-15', comment:'' },
-        { id:4, employee:'АЛЕКСЕЙ КОРОВИН', type:'Отпуск', title:'Отпуск', start:'2025-08-10', end:'2025-08-24', comment:'' },
+        { id:1, employee:'РљР РћРўРћР’ РЎР•Р Р“Р•Р™', type:'Р—Р°РґР°С‡Р°', title:'GLOBUS 4.0', start:'2025-08-01', end:'2025-09-10', comment:'' },
+        { id:2, employee:'РљР РћРўРћР’ РЎР•Р Р“Р•Р™', type:'Р—Р°РґР°С‡Р°', title:'Р“Р»РѕР±СѓСЃ 4.0', start:'2025-08-20', end:'2025-08-22', comment:'' },
+        { id:3, employee:'РђР›Р›Рђ Р•Р РћР¤Р•Р•Р’Рђ', type:'Р—Р°РґР°С‡Р°', title:'пїЅР›РѕРіРёСЃС‚РёС‡РµСЃРєРёР№ СЃРєР»Р°Рґ 2 РѕС‡РµСЂРµРґСЊ', start:'2025-07-15', end:'2025-12-15', comment:'' },
+        { id:4, employee:'РђР›Р•РљРЎР•Р™ РљРћР РћР’РРќ', type:'РћС‚РїСѓСЃРє', title:'РћС‚РїСѓСЃРє', start:'2025-08-10', end:'2025-08-24', comment:'' },
       ];
-      // Фильтры с localStorage
-      const [filterEmp,setFilterEmp]=useState(localStorage.getItem('flt_emp')||'Все');
-      const [filterStatus,setFilterStatus]=useState(localStorage.getItem('flt_status')||'Все');
+      // Р¤РёР»СЊС‚СЂС‹ СЃ localStorage
+      const [filterEmp,setFilterEmp]=useState(localStorage.getItem('flt_emp')||'Р’СЃРµ');
+      const [filterStatus,setFilterStatus]=useState(localStorage.getItem('flt_status')||'Р’СЃРµ');
       useEffect(()=>{ localStorage.setItem('flt_emp',filterEmp); },[filterEmp]);
       useEffect(()=>{ localStorage.setItem('flt_status',filterStatus); },[filterStatus]);
-      // Сброс фильтров
+      // РЎР±СЂРѕСЃ С„РёР»СЊС‚СЂРѕРІ
       function resetFilters() {
-        setFilterEmp('Все');
-        setFilterStatus('Все');
+        setFilterEmp('Р’СЃРµ');
+        setFilterStatus('Р’СЃРµ');
         localStorage.removeItem('flt_emp');
         localStorage.removeItem('flt_status');
       }
@@ -127,14 +127,14 @@
       const itemsWithStatus=useMemo(()=> items.map(i=>({...i,_status:statusOf(i,today)})),[items]);
       const filteredItems=useMemo(()=>{
         let list=itemsWithStatus;
-        if(filterEmp!=='Все') list=list.filter(i=>i.employee===filterEmp);
-        if(filterStatus!=='Все') list=list.filter(i=>i._status===filterStatus);
-        const order={'активная':0,'не начатая':1,'завершенная':2};
+        if(filterEmp!=='Р’СЃРµ') list=list.filter(i=>i.employee===filterEmp);
+        if(filterStatus!=='Р’СЃРµ') list=list.filter(i=>i._status===filterStatus);
+        const order={'Р°РєС‚РёРІРЅР°СЏ':0,'РЅРµ РЅР°С‡Р°С‚Р°СЏ':1,'Р·Р°РІРµСЂС€РµРЅРЅР°СЏ':2};
         return [...list].sort((a,b)=>order[a._status]-order[b._status]||new Date(a.start)-new Date(b.start));
       },[itemsWithStatus,filterEmp,filterStatus]);
-      const [form,setForm]=useState({ employee:employees[0], type:'Задача', title:'', start:'', end:'' });
+      const [form,setForm]=useState({ employee:employees[0], type:'Р—Р°РґР°С‡Р°', title:'', start:'', end:'' });
       function addItem(){
-        if(!form.start||!form.end||!form.title) return alert('Заполните Описание и даты');
+        if(!form.start||!form.end||!form.title) return alert('Р—Р°РїРѕР»РЅРёС‚Рµ РћРїРёСЃР°РЅРёРµ Рё РґР°С‚С‹');
         const id=(items.reduce((m,i)=>Math.max(m,i.id),0)+1)||1;
         setItems([...items,{ id, employee:form.employee, type:form.type, title:form.title, start:form.start, end:form.end, comment:'' }]);
       }
@@ -145,7 +145,7 @@
       function deleteItem(id){ setItems(items.filter(i=>i.id!==id)); }
       // Export to Excel (xlsx)
       function exportExcel(){
-        const headers=['Сотрудник','Тип','Описание','Дата начала','Дата окончания','Статус','Комментарии'];
+        const headers=['РЎРѕС‚СЂСѓРґРЅРёРє','РўРёРї','РћРїРёСЃР°РЅРёРµ','Р”Р°С‚Р° РЅР°С‡Р°Р»Р°','Р”Р°С‚Р° РѕРєРѕРЅС‡Р°РЅРёСЏ','РЎС‚Р°С‚СѓСЃ','РљРѕРјРјРµРЅС‚Р°СЂРёРё'];
         const rows=filteredItems.map(i=>[
           i.employee,
           i.type,
@@ -157,54 +157,54 @@
         ]);
         const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Задачи");
+        XLSX.utils.book_append_sheet(wb, ws, "Р—Р°РґР°С‡Рё");
         XLSX.writeFile(wb, "tasks.xlsx");
       }
       const rowHeight=32; const currentFullDate=fmtFull(today);
       return (
         React.createElement('div', { style: { minHeight:'100vh', backgroundImage:`url(${BG_URL})`, backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'fixed', padding:12 } },
           React.createElement('div', { style: { maxWidth:1200, margin:'0 auto', background:'rgba(255,255,255,0.96)', borderRadius:16, boxShadow:'0 10px 30px rgba(0,0,0,0.2)', overflow:'hidden' } },
-            React.createElement('div', { className: 'px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg' }, 'График занятости сотрудников'),
+            React.createElement('div', { className: 'px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg' }, 'Р“СЂР°С„РёРє Р·Р°РЅСЏС‚РѕСЃС‚Рё СЃРѕС‚СЂСѓРґРЅРёРєРѕРІ'),
             React.createElement('div', { className: 'p-3' },
               React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-5 gap-3' },
                 // Left
                 React.createElement('div', { className: 'col-span-1 bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col gap-2 max-h-[75vh] overflow-y-auto' },
-                  React.createElement('div', { className: 'font-semibold' }, 'Добавить задачу / отпуск'),
+                  React.createElement('div', { className: 'font-semibold' }, 'Р”РѕР±Р°РІРёС‚СЊ Р·Р°РґР°С‡Сѓ / РѕС‚РїСѓСЃРє'),
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Сотрудник'),
+                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'РЎРѕС‚СЂСѓРґРЅРёРє'),
                     React.createElement('select', { className: 'w-full p-1.5 border border-gray-200 rounded', value: form.employee, onChange: e=>setForm({...form, employee:e.target.value}) },
                       employees.map(e=> React.createElement('option', { key: e, value: e }, e))
                     )
                   ),
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Тип'),
+                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'РўРёРї'),
                     React.createElement('select', { className: 'w-full p-1.5 border border-gray-200 rounded', value: form.type, onChange: e=>setForm({...form, type:e.target.value}) },
-                      React.createElement('option', null, 'Задача'),
-                      React.createElement('option', null, 'Отпуск')
+                      React.createElement('option', null, 'Р—Р°РґР°С‡Р°'),
+                      React.createElement('option', null, 'РћС‚РїСѓСЃРє')
                     )
                   ),
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Описание'),
-                    React.createElement('input', { className: 'w-full p-1.5 border border-gray-200 rounded', value: form.title, onChange: e=>setForm({...form, title:e.target.value}), placeholder: 'Краткое описание' })
+                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'РћРїРёСЃР°РЅРёРµ'),
+                    React.createElement('input', { className: 'w-full p-1.5 border border-gray-200 rounded', value: form.title, onChange: e=>setForm({...form, title:e.target.value}), placeholder: 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ' })
                   ),
                   React.createElement('div', { className: 'grid grid-cols-2 gap-2' },
                     React.createElement('div', null,
-                      React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Дата начала'),
+                      React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Р”Р°С‚Р° РЅР°С‡Р°Р»Р°'),
                       React.createElement('input', { className: 'w-full p-1.5 border border-gray-200 rounded', type: 'date', value: form.start, onChange: e=>setForm({...form, start:e.target.value}) })
                     ),
                     React.createElement('div', null,
-                      React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Дата окончания'),
+                      React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Р”Р°С‚Р° РѕРєРѕРЅС‡Р°РЅРёСЏ'),
                       React.createElement('input', { className: 'w-full p-1.5 border border-gray-200 rounded', type: 'date', value: form.end, onChange: e=>setForm({...form, end:e.target.value}) })
                     )
                   ),
-                  React.createElement('button', { className: 'bg-blue-600 text-white rounded px-3 py-2 mt-1 hover:bg-blue-700', onClick: addItem }, 'Добавить'),
+                  React.createElement('button', { className: 'bg-blue-600 text-white rounded px-3 py-2 mt-1 hover:bg-blue-700', onClick: addItem }, 'Р”РѕР±Р°РІРёС‚СЊ'),
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'font-semibold mb-1' }, 'Обозначения'),
+                    React.createElement('div', { className: 'font-semibold mb-1' }, 'РћР±РѕР·РЅР°С‡РµРЅРёСЏ'),
                     React.createElement('div', { className: 'flex gap-2 flex-wrap' },
                       React.createElement('span', { className: 'inline-flex items-center gap-1 px-2 py-1 border border-gray-200 rounded-full' },
-                        React.createElement('span', { className: 'w-3 h-3 rounded-full', style: {background:typeMeta['Задача'].color} }), 'Задача'),
+                        React.createElement('span', { className: 'w-3 h-3 rounded-full', style: {background:typeMeta['Р—Р°РґР°С‡Р°'].color} }), 'Р—Р°РґР°С‡Р°'),
                       React.createElement('span', { className: 'inline-flex items-center gap-1 px-2 py-1 border border-gray-200 rounded-full' },
-                        React.createElement('span', { className: 'w-3 h-3 rounded-full', style: {background:typeMeta['Отпуск'].color} }), 'Отпуск')
+                        React.createElement('span', { className: 'w-3 h-3 rounded-full', style: {background:typeMeta['РћС‚РїСѓСЃРє'].color} }), 'РћС‚РїСѓСЃРє')
                     )
                   )
                 ),
@@ -214,26 +214,26 @@
                     React.createElement('div', { className: 'flex flex-wrap gap-2 justify-between items-end' },
                       React.createElement('div', { className: 'flex gap-2 flex-wrap' },
                         React.createElement('div', null,
-                          React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Сотрудник'),
+                          React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'РЎРѕС‚СЂСѓРґРЅРёРє'),
                           React.createElement('select', { className: 'w-32 p-1.5 border border-gray-200 rounded', value: filterEmp, onChange: e=>setFilterEmp(e.target.value) },
-                            React.createElement('option', null, 'Все'),
+                            React.createElement('option', null, 'Р’СЃРµ'),
                             employees.map(e=> React.createElement('option', { key: e }, e))
                           )
                         ),
                         React.createElement('div', null,
-                          React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Статус'),
+                          React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'РЎС‚Р°С‚СѓСЃ'),
                           React.createElement('select', { className: 'w-32 p-1.5 border border-gray-200 rounded', value: filterStatus, onChange: e=>setFilterStatus(e.target.value) },
-                            React.createElement('option', null, 'Все'),
-                            React.createElement('option', null, 'не начатая'),
-                            React.createElement('option', null, 'активная'),
-                            React.createElement('option', null, 'завершенная')
+                            React.createElement('option', null, 'Р’СЃРµ'),
+                            React.createElement('option', null, 'РЅРµ РЅР°С‡Р°С‚Р°СЏ'),
+                            React.createElement('option', null, 'Р°РєС‚РёРІРЅР°СЏ'),
+                            React.createElement('option', null, 'Р·Р°РІРµСЂС€РµРЅРЅР°СЏ')
                           )
                         ),
-                        React.createElement('button', { className: 'bg-gray-100 border border-gray-200 rounded px-3 py-2 hover:bg-gray-200', onClick: resetFilters }, 'Сброс фильтров')
+                        React.createElement('button', { className: 'bg-gray-100 border border-gray-200 rounded px-3 py-2 hover:bg-gray-200', onClick: resetFilters }, 'РЎР±СЂРѕСЃ С„РёР»СЊС‚СЂРѕРІ')
                       ),
-                      React.createElement('button', { className: 'bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700', onClick: exportExcel }, 'Выгрузить в Excel')
+                      React.createElement('button', { className: 'bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700', onClick: exportExcel }, 'Р’С‹РіСЂСѓР·РёС‚СЊ РІ Excel')
                     ),
-                    React.createElement('div', { className: 'mt-2 text-gray-800 font-semibold' }, `Сегодня: ${currentFullDate}`)
+                    React.createElement('div', { className: 'mt-2 text-gray-800 font-semibold' }, `РЎРµРіРѕРґРЅСЏ: ${currentFullDate}`)
                   ),
                   // Timeline with drag-to-scroll
                   React.createElement('div', {
@@ -242,7 +242,7 @@
                     style: { width:'100%', overflowX:'auto', overflowY:'hidden', border:'1px solid #e2e8f0', borderRadius:8, cursor: dragState.current.active ? 'grabbing' : 'grab' },
                     onMouseDown: onTimelineMouseDown
                   },
-                    // Сетка + бары
+                    // РЎРµС‚РєР° + Р±Р°СЂС‹
                     React.createElement('div', { id: 'timeline-grid', style: {position:'relative', minHeight: rowHeight * employees.length} },
                       React.createElement('div', { id: 'timeline-inner', style: {minWidth:minContentWidth, display:'grid', gridTemplateColumns:`220px repeat(${totalDays}, ${dayWidth}px)`} },
                         employees.map((emp, empIdx) => (
@@ -252,14 +252,14 @@
                               const isWeekend=[0,6].includes(d.getDay());
                               return React.createElement('div', { key: emp+'-'+i, style: { height:rowHeight, borderBottom:'1px solid #e2e8f0', borderRight:'1px solid #f1f5f9', background:isWeekend?'#fafafa':'#fff' } });
                             }),
-                            // Задачи для сотрудника на своей строке
+                            // Р—Р°РґР°С‡Рё РґР»СЏ СЃРѕС‚СЂСѓРґРЅРёРєР° РЅР° СЃРІРѕРµР№ СЃС‚СЂРѕРєРµ
                             filteredItems.filter(it=>it.employee===emp).map((it, idx)=>{
                               const s=dayIndex(it.start); const e=dayIndex(it.end); const leftPx=220 + s*dayWidth; const widthPx=Math.max(1, e-s+1)*dayWidth;
                               const color=typeMeta[it.type]?.color||'#4F8DFD';
                               return React.createElement(React.Fragment, { key: it.id },
                                 React.createElement('div', {
                                   style: { position:'absolute', left:leftPx, top: empIdx * rowHeight + 6, width: widthPx, height:10, background:color, borderRadius:6, boxShadow:'0 0 0 2px #fff', cursor:'pointer' },
-                                  onMouseEnter: e => setTooltip({ visible: true, x: e.clientX, y: e.clientY, text: `${it.type}: ${it.title}\n${fmtShort(it.start)} — ${fmtShort(it.end)}` }),
+                                  onMouseEnter: e => setTooltip({ visible: true, x: e.clientX, y: e.clientY, text: `${it.type}: ${it.title}\n${fmtShort(it.start)} пїЅ ${fmtShort(it.end)}` }),
                                   onMouseLeave: () => setTooltip({ ...tooltip, visible: false }),
                                   onMouseMove: e => setTooltip(t => t.visible ? { ...t, x: e.clientX, y: e.clientY } : t),
                                   onMouseDown: (e)=>onMouseDown(e,it,'move')
@@ -272,7 +272,7 @@
                           )
                         ))
                       ),
-                      // Красная линия "сегодня"
+                      // РљСЂР°СЃРЅР°СЏ Р»РёРЅРёСЏ "СЃРµРіРѕРґРЅСЏ"
                       (() => {
                         const idx=Math.floor((today-startRange)/86400000);
                         const cl=Math.max(0,Math.min(totalDays-1,idx));
@@ -280,7 +280,7 @@
                         return React.createElement('div', { style: { position:'absolute', top:0, left:left+'px', width:0, height:'100%', borderLeft:'2px solid #ef4444', pointerEvents:'none' } });
                       })()
                     ),
-                    // Нижняя шкала дней
+                    // РќРёР¶РЅСЏСЏ С€РєР°Р»Р° РґРЅРµР№
                     React.createElement('div', { style: {minWidth:minContentWidth, display:'grid', gridTemplateColumns:`220px repeat(${totalDays}, ${dayWidth}px)`, fontSize:11, color:'#475569'} },
                       React.createElement('div', null),
                       days.map((d,i)=>{
@@ -309,21 +309,21 @@
                       }
                     }, tooltip.text)
                   ),
-                  // Таблица задач
+                  // РўР°Р±Р»РёС†Р° Р·Р°РґР°С‡
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'font-bold my-2' }, 'Задачи'),
+                    React.createElement('div', { className: 'font-bold my-2' }, 'Р—Р°РґР°С‡Рё'),
                     React.createElement('div', { className: 'overflow-x-auto border border-gray-200 rounded-lg' },
                       React.createElement('table', { className: 'min-w-[1000px] text-xs', style: {tableLayout:'fixed'} },
                         React.createElement('thead', { className: 'bg-gray-50 sticky top-0 z-10' },
                           React.createElement('tr', null,
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-32' }, 'Сотрудник'),
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-20' }, 'Тип'),
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-56' }, 'Описание'),
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-24' }, 'Дата начала'),
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-24' }, 'Дата окончания'),
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-20' }, 'Статус'),
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-40' }, 'Действия'),
-                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-40' }, 'Комментарии')
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-32' }, 'РЎРѕС‚СЂСѓРґРЅРёРє'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-20' }, 'РўРёРї'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-56' }, 'РћРїРёСЃР°РЅРёРµ'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-24' }, 'Р”Р°С‚Р° РЅР°С‡Р°Р»Р°'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-24' }, 'Р”Р°С‚Р° РѕРєРѕРЅС‡Р°РЅРёСЏ'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-20' }, 'РЎС‚Р°С‚СѓСЃ'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-40' }, 'Р”РµР№СЃС‚РІРёСЏ'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-40' }, 'РљРѕРјРјРµРЅС‚Р°СЂРёРё')
                           )
                         ),
                         React.createElement('tbody', null,
@@ -354,10 +354,10 @@
                               React.createElement('td', { className: 'border border-gray-200 px-2 py-1' }, st),
                               React.createElement('td', { className: 'border border-gray-200 px-2 py-1' },
                                 React.createElement('div', { className: 'flex gap-1 flex-wrap' },
-                                  React.createElement('button', { className: 'bg-blue-500 text-white rounded px-2 py-1 text-xs', onClick:()=>resumeItem(it.id) }, 'Возобновить'),
-                                  React.createElement('button', { className: 'bg-blue-500 text-white rounded px-2 py-1 text-xs', onClick:()=>makeActive(it.id) }, 'Активная'),
-                                  React.createElement('button', { className: 'bg-red-500 text-white rounded px-2 py-1 text-xs', onClick:()=>markDone(it.id) }, 'Завершить'),
-                                  React.createElement('button', { className: 'bg-red-600 text-white rounded px-2 py-1 text-xs', onClick:()=>deleteItem(it.id) }, 'Удалить')
+                                  React.createElement('button', { className: 'bg-blue-500 text-white rounded px-2 py-1 text-xs', onClick:()=>resumeItem(it.id) }, 'Р’РѕР·РѕР±РЅРѕРІРёС‚СЊ'),
+                                  React.createElement('button', { className: 'bg-blue-500 text-white rounded px-2 py-1 text-xs', onClick:()=>makeActive(it.id) }, 'РђРєС‚РёРІРЅР°СЏ'),
+                                  React.createElement('button', { className: 'bg-red-500 text-white rounded px-2 py-1 text-xs', onClick:()=>markDone(it.id) }, 'Р—Р°РІРµСЂС€РёС‚СЊ'),
+                                  React.createElement('button', { className: 'bg-red-600 text-white rounded px-2 py-1 text-xs', onClick:()=>deleteItem(it.id) }, 'РЈРґР°Р»РёС‚СЊ')
                                 )
                               ),
                               React.createElement('td', { className: 'border border-gray-200 px-2 py-1 truncate' },
@@ -366,7 +366,7 @@
                                   value: it.comment||'',
                                   onChange: e=>setItems(items.map(x=>x.id===it.id?{...x, comment:e.target.value}:x)),
                                   title: it.comment||'',
-                                  placeholder: 'Комментарий'
+                                  placeholder: 'РљРѕРјРјРµРЅС‚Р°СЂРёР№'
                                 })
                               )
                             );
