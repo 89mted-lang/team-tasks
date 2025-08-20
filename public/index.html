@@ -2,40 +2,127 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>График занятости сотрудников</title>
+  <title>ГРАФИК ЗАНЯТОСТИ СОТРУДНИКОВ GLOBUS ARCHTEAM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- React production CDN -->
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+  <!-- Tailwind CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    #root { min-height: 100vh; }
+    ::-webkit-scrollbar { height: 8px; background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    th, td { white-space: nowrap; }
+  </style>
 </head>
 <body class="bg-gray-100">
   <div id="root"></div>
   <script type="text/javascript">
-    const { useState, useEffect } = React;
+    const { useState, useMemo, useEffect, useRef } = React;
 
     function App() {
-      const [items, setItems] = useState([]);
-      const [form, setForm] = useState({
-        employee: '',
-        type: 'Задача',
-        title: '',
-        start: '',
-        end: ''
-      });
+      // Tooltip state
+      const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, text: '' });
 
-      // Загрузка задач с сервера при старте
+      // Drag-to-scroll refs and handlers
+      const timelineRef = useRef(null);
+      const dragState = useRef({ active: false, startX: 0, scrollLeft: 0 });
+      function onTimelineMouseDown(e) {
+        if (e.button !== 0) return;
+        dragState.current = {
+          active: true,
+          startX: e.clientX,
+          scrollLeft: timelineRef.current.scrollLeft
+        };
+        window.addEventListener('mousemove', onTimelineMouseMove);
+        window.addEventListener('mouseup', onTimelineMouseUp);
+      }
+      function onTimelineMouseMove(e) {
+        if (!dragState.current.active) return;
+        const dx = e.clientX - dragState.current.startX;
+        timelineRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+      }
+      function onTimelineMouseUp() {
+        dragState.current.active = false;
+        window.removeEventListener('mousemove', onTimelineMouseMove);
+        window.removeEventListener('mouseup', onTimelineMouseUp);
+      }
+
+      // Данные и утилиты
+      const BG_URL = "https://avatars.mds.yandex.net/get-altay/3923637/2a0000017651f1c40eebefa5d67c6f1daf46/XXXL";
+      const employees = ["КРОТОВ СЕРГЕЙ","АЛЛА ЕРОФЕЕВА","АЛЕКСЕЙ КОРОВИН","МАРИНА ЖУКОВА","ЕКАТЕРИНА СОНИНА"];
+      const monthNames = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+      const typeMeta = { 'Задача': { color: '#4F8DFD' }, 'Отпуск': { color: '#F0AD4E' } };
+      function fmtFull(date){
+        const f=new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+        const p=f.formatToParts(date);
+        return `${p.find(x=>x.type==='day')?.value} ${p.find(x=>x.type==='month')?.value} ${p.find(x=>x.type==='year')?.value} года`;
+      }
+      function fmtShort(date){
+        const d=new Date(date);
+        return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+      }
+      function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
+      function statusOf(item,today){
+        const s=new Date(item.start), e=new Date(item.end);
+        const t0=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+        if(e<t0) return 'завершенная';
+        if(s>today) return 'не начатая';
+        return 'активная';
+      }
+
+      // --- ГЛАВНОЕ: теперь задачи с сервера ---
+      const [items, setItems] = useState([]);
       useEffect(() => {
         fetch('/api/tasks')
           .then(res => res.json())
           .then(data => setItems(data));
       }, []);
 
-      // Добавление задачи через сервер
+      // Фильтры с localStorage
+      const [filterEmp,setFilterEmp]=useState(localStorage.getItem('flt_emp')||'Все');
+      const [filterStatus,setFilterStatus]=useState(localStorage.getItem('flt_status')||'Все');
+      useEffect(()=>{ localStorage.setItem('flt_emp',filterEmp); },[filterEmp]);
+      useEffect(()=>{ localStorage.setItem('flt_status',filterStatus); },[filterStatus]);
+      function resetFilters() {
+        setFilterEmp('Все');
+        setFilterStatus('Все');
+        localStorage.removeItem('flt_emp');
+        localStorage.removeItem('flt_status');
+      }
+
+      const today=new Date();
+      const startRange=new Date(today.getFullYear(), today.getMonth()-1, 1);
+      const endRange=new Date(today.getFullYear(), today.getMonth()+5, 0);
+      const days=useMemo(()=>{
+        const d=new Date(startRange); const arr=[];
+        while(d<=endRange){ arr.push(new Date(d)); d.setDate(d.getDate()+1); }
+        return arr;
+      },[startRange,endRange]);
+      const totalDays=days.length;
+      const dayWidth=15;
+      const minContentWidth = 220 + totalDays * dayWidth;
+      function dayIndex(d){
+        const date=(d instanceof Date)?d:new Date(d);
+        const idx=Math.floor((date-startRange)/86400000);
+        return Math.max(0,Math.min(totalDays-1,idx));
+      }
+      const itemsWithStatus=useMemo(()=> items.map(i=>({...i,_status:statusOf(i,today)})),[items]);
+      const filteredItems=useMemo(()=>{
+        let list=itemsWithStatus;
+        if(filterEmp!=='Все') list=list.filter(i=>i.employee===filterEmp);
+        if(filterStatus!=='Все') list=list.filter(i=>i._status===filterStatus);
+        const order={'активная':0,'не начатая':1,'завершенная':2};
+        return [...list].sort((a,b)=>order[a._status]-order[b._status]||new Date(a.start)-new Date(b.start));
+      },[itemsWithStatus,filterEmp,filterStatus]);
+      const [form,setForm]=useState({ employee:employees[0], type:'Задача', title:'', start:'', end:'' });
+
+      // --- ГЛАВНОЕ: добавление задачи через fetch ---
       function addItem() {
-        if (!form.employee || !form.type || !form.title || !form.start || !form.end) {
-          alert('Заполните все поля');
-          return;
-        }
+        if (!form.start || !form.end || !form.title) return alert('Заполните Описание и даты');
         const newTask = {
           employee: form.employee,
           type: form.type,
@@ -53,66 +140,244 @@
           .then(added => setItems(items => [...items, added]));
       }
 
+      function addDaysLocal(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
+      function markDone(id){ const yest=addDaysLocal(new Date(),-1); setItems(items.map(i=> i.id===id?{...i,end:yest.toISOString().slice(0,10)}:i)); }
+      function makeActive(id){ const t=new Date(); setItems(items.map(i=>{ if(i.id!==id) return i; const ns=new Date(i.start)>t?t:new Date(i.start); const ne=new Date(i.end)<t?t:new Date(i.end); return {...i,start:ns.toISOString().slice(0,10), end:ne.toISOString().slice(0,10)}; })); }
+      function resumeItem(id){ const t=new Date(); setItems(items.map(i=>{ if(i.id!==id) return i; const ns=new Date(i.start)>t?t:new Date(i.start); const ne=addDaysLocal(t,7); return {...i,start:ns.toISOString().slice(0,10), end:ne.toISOString().slice(0,10)}; })); }
+      function deleteItem(id){ setItems(items.filter(i=>i.id!==id)); }
+
+      // Export to Excel (xlsx)
+      function exportExcel(){
+        const headers=['Сотрудник','Тип','Описание','Дата начала','Дата окончания','Статус','Комментарии'];
+        const rows=filteredItems.map(i=>[
+          i.employee,
+          i.type,
+          i.title,
+          fmtShort(i.start),
+          fmtShort(i.end),
+          statusOf(i,new Date()),
+          i.comment||''
+        ]);
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Задачи");
+        XLSX.writeFile(wb, "tasks.xlsx");
+      }
+      const rowHeight=32; const currentFullDate=fmtFull(today);
+
       return (
-        React.createElement('div', { className: 'max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8' },
-          React.createElement('h1', { className: 'text-2xl font-bold mb-4' }, 'График занятости сотрудников'),
-          React.createElement('div', { className: 'mb-4 grid grid-cols-2 gap-2' },
-            React.createElement('input', {
-              className: 'border p-2 rounded',
-              placeholder: 'Сотрудник',
-              value: form.employee,
-              onChange: e => setForm({ ...form, employee: e.target.value })
-            }),
-            React.createElement('select', {
-              className: 'border p-2 rounded',
-              value: form.type,
-              onChange: e => setForm({ ...form, type: e.target.value })
-            },
-              React.createElement('option', null, 'Задача'),
-              React.createElement('option', null, 'Отпуск')
-            ),
-            React.createElement('input', {
-              className: 'border p-2 rounded col-span-2',
-              placeholder: 'Описание',
-              value: form.title,
-              onChange: e => setForm({ ...form, title: e.target.value })
-            }),
-            React.createElement('input', {
-              className: 'border p-2 rounded',
-              type: 'date',
-              value: form.start,
-              onChange: e => setForm({ ...form, start: e.target.value })
-            }),
-            React.createElement('input', {
-              className: 'border p-2 rounded',
-              type: 'date',
-              value: form.end,
-              onChange: e => setForm({ ...form, end: e.target.value })
-            })
-          ),
-          React.createElement('button', {
-            className: 'bg-blue-600 text-white px-4 py-2 rounded mb-6',
-            onClick: addItem
-          }, 'Добавить задачу'),
-          React.createElement('h2', { className: 'text-lg font-semibold mb-2' }, 'Список задач'),
-          React.createElement('table', { className: 'w-full border' },
-            React.createElement('thead', null,
-              React.createElement('tr', null,
-                React.createElement('th', { className: 'border p-2' }, 'Сотрудник'),
-                React.createElement('th', { className: 'border p-2' }, 'Тип'),
-                React.createElement('th', { className: 'border p-2' }, 'Описание'),
-                React.createElement('th', { className: 'border p-2' }, 'Начало'),
-                React.createElement('th', { className: 'border p-2' }, 'Окончание')
-              )
-            ),
-            React.createElement('tbody', null,
-              items.map(task =>
-                React.createElement('tr', { key: task.id },
-                  React.createElement('td', { className: 'border p-2' }, task.employee),
-                  React.createElement('td', { className: 'border p-2' }, task.type),
-                  React.createElement('td', { className: 'border p-2' }, task.title),
-                  React.createElement('td', { className: 'border p-2' }, task.start),
-                  React.createElement('td', { className: 'border p-2' }, task.end)
+        React.createElement('div', { style: { minHeight:'100vh', backgroundImage:`url(${BG_URL})`, backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'fixed', padding:12 } },
+          React.createElement('div', { style: { maxWidth:1200, margin:'0 auto', background:'rgba(255,255,255,0.96)', borderRadius:16, boxShadow:'0 10px 30px rgba(0,0,0,0.2)', overflow:'hidden' } },
+            React.createElement('div', { className: 'px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg' }, 'График занятости сотрудников'),
+            React.createElement('div', { className: 'p-3' },
+              React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-5 gap-3' },
+                // Left
+                React.createElement('div', { className: 'col-span-1 bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col gap-2 max-h-[75vh] overflow-y-auto' },
+                  React.createElement('div', { className: 'font-semibold' }, 'Добавить задачу / отпуск'),
+                  React.createElement('div', null,
+                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Сотрудник'),
+                    React.createElement('select', { className: 'w-full p-1.5 border border-gray-200 rounded', value: form.employee, onChange: e=>setForm({...form, employee:e.target.value}) },
+                      employees.map(e=> React.createElement('option', { key: e, value: e }, e))
+                    )
+                  ),
+                  React.createElement('div', null,
+                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Тип'),
+                    React.createElement('select', { className: 'w-full p-1.5 border border-gray-200 rounded', value: form.type, onChange: e=>setForm({...form, type:e.target.value}) },
+                      React.createElement('option', null, 'Задача'),
+                      React.createElement('option', null, 'Отпуск')
+                    )
+                  ),
+                  React.createElement('div', null,
+                    React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Описание'),
+                    React.createElement('input', { className: 'w-full p-1.5 border border-gray-200 rounded', value: form.title, onChange: e=>setForm({...form, title:e.target.value}), placeholder: 'Описание задачи' })
+                  ),
+                  React.createElement('div', { className: 'grid grid-cols-2 gap-2' },
+                    React.createElement('div', null,
+                      React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Дата начала'),
+                      React.createElement('input', { className: 'w-full p-1.5 border border-gray-200 rounded', type: 'date', value: form.start, onChange: e=>setForm({...form, start:e.target.value}) })
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Дата окончания'),
+                      React.createElement('input', { className: 'w-full p-1.5 border border-gray-200 rounded', type: 'date', value: form.end, onChange: e=>setForm({...form, end:e.target.value}) })
+                    )
+                  ),
+                  React.createElement('button', { className: 'bg-blue-600 text-white rounded px-3 py-2 mt-1 hover:bg-blue-700', onClick: addItem }, 'Добавить'),
+                  React.createElement('div', null,
+                    React.createElement('div', { className: 'font-semibold mb-1' }, 'Обозначения'),
+                    React.createElement('div', { className: 'flex gap-2 flex-wrap' },
+                      React.createElement('span', { className: 'inline-flex items-center gap-1 px-2 py-1 border border-gray-200 rounded-full' },
+                        React.createElement('span', { className: 'w-3 h-3 rounded-full', style: {background:typeMeta['Задача'].color} }), 'Задача'),
+                      React.createElement('span', { className: 'inline-flex items-center gap-1 px-2 py-1 border border-gray-200 rounded-full' },
+                        React.createElement('span', { className: 'w-3 h-3 rounded-full', style: {background:typeMeta['Отпуск'].color} }), 'Отпуск')
+                    )
+                  )
+                ),
+                // Right
+                React.createElement('div', { className: 'col-span-1 md:col-span-4 bg-white border border-gray-200 rounded-xl p-3 flex flex-col gap-2' },
+                  React.createElement('div', { className: 'sticky top-0 bg-white z-10 pb-2 border-b border-gray-200' },
+                    React.createElement('div', { className: 'flex flex-wrap gap-2 justify-between items-end' },
+                      React.createElement('div', { className: 'flex gap-2 flex-wrap' },
+                        React.createElement('div', null,
+                          React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Сотрудник'),
+                          React.createElement('select', { className: 'w-32 p-1.5 border border-gray-200 rounded', value: filterEmp, onChange: e=>setFilterEmp(e.target.value) },
+                            React.createElement('option', null, 'Все'),
+                            employees.map(e=> React.createElement('option', { key: e }, e))
+                          )
+                        ),
+                        React.createElement('div', null,
+                          React.createElement('div', { className: 'text-xs text-gray-700 mb-1' }, 'Статус'),
+                          React.createElement('select', { className: 'w-32 p-1.5 border border-gray-200 rounded', value: filterStatus, onChange: e=>setFilterStatus(e.target.value) },
+                            React.createElement('option', null, 'Все'),
+                            React.createElement('option', null, 'не начатая'),
+                            React.createElement('option', null, 'активная'),
+                            React.createElement('option', null, 'завершенная')
+                          )
+                        ),
+                        React.createElement('button', { className: 'bg-gray-100 border border-gray-200 rounded px-3 py-2 hover:bg-gray-200', onClick: resetFilters }, 'Сброс фильтров')
+                      ),
+                      React.createElement('button', { className: 'bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700', onClick: exportExcel }, 'Выгрузить в Excel')
+                    ),
+                    React.createElement('div', { className: 'mt-2 text-gray-800 font-semibold' }, `Сегодня: ${currentFullDate}`)
+                  ),
+                  // Timeline with drag-to-scroll
+                  React.createElement('div', {
+                    id: 'timeline-wrapper',
+                    ref: timelineRef,
+                    style: { width:'100%', overflowX:'auto', overflowY:'hidden', border:'1px solid #e2e8f0', borderRadius:8, cursor: dragState.current.active ? 'grabbing' : 'grab' },
+                    onMouseDown: onTimelineMouseDown
+                  },
+                    // Сетка + бары
+                    React.createElement('div', { id: 'timeline-grid', style: {position:'relative', minHeight: rowHeight * employees.length} },
+                      React.createElement('div', { id: 'timeline-inner', style: {minWidth:minContentWidth, display:'grid', gridTemplateColumns:`220px repeat(${totalDays}, ${dayWidth}px)`} },
+                        employees.map((emp, empIdx) => (
+                          React.createElement(React.Fragment, { key: emp },
+                            React.createElement('div', { style: { position:'sticky', left:0, background:'#fff', zIndex:2, padding:'6px 8px', borderBottom:'1px solid #e2e8f0', fontWeight:600, color:'#0f172a', height: rowHeight } }, emp),
+                            days.map((d,i)=>{
+                              const isWeekend=[0,6].includes(d.getDay());
+                              return React.createElement('div', { key: emp+'-'+i, style: { height:rowHeight, borderBottom:'1px solid #e2e8f0', borderRight:'1px solid #f1f5f9', background:isWeekend?'#fafafa':'#fff' } });
+                            }),
+                            // Задачи для сотрудника на своей строке
+                            filteredItems.filter(it=>it.employee===emp).map((it, idx)=>{
+                              const s=dayIndex(it.start); const e=dayIndex(it.end); const leftPx=220 + s*dayWidth; const widthPx=Math.max(1, e-s+1)*dayWidth;
+                              const color = typeMeta[it.type]?.color || '#ccc';
+                              return React.createElement(React.Fragment, { key: it.id },
+                                React.createElement('div', {
+                                  style: { position:'absolute', left:leftPx, top: empIdx * rowHeight + 6, width: widthPx, height:10, background:color, borderRadius:6, boxShadow:'0 0 0 2px #fff', cursor:'pointer' },
+                                  onMouseEnter: e => setTooltip({ visible: true, x: e.clientX, y: e.clientY, text: `${it.type}: ${it.title}\n${fmtShort(it.start)} — ${fmtShort(it.end)}` }),
+                                  onMouseLeave: () => setTooltip({ ...tooltip, visible: false }),
+                                  onMouseMove: e => setTooltip(t => t.visible ? { ...t, x: e.clientX, y: e.clientY } : t),
+                                },
+                                  React.createElement('div', { onMouseDown: (e)=>{e.stopPropagation();}, style: {position:'absolute', left:-4, top:-3, width:8, height:16, borderRadius:4, background:'#334155'} }),
+                                  React.createElement('div', { onMouseDown: (e)=>{e.stopPropagation();}, style: {position:'absolute', right:-4, top:-3, width:8, height:16, borderRadius:4, background:'#334155'} })
+                                )
+                              );
+                            })
+                          )
+                        ))
+                      ),
+                      // Красная линия "сегодня"
+                      (() => {
+                        const idx=Math.floor((today-startRange)/86400000);
+                        const cl=Math.max(0,Math.min(totalDays-1,idx));
+                        const left=220+cl*dayWidth;
+                        return React.createElement('div', { style: { position:'absolute', top:0, left:left+'px', width:0, height:'100%', borderLeft:'2px solid #ef4444', pointerEvents:'none' } });
+                      })()
+                    ),
+                    // Нижняя шкала дней
+                    React.createElement('div', { style: {minWidth:minContentWidth, display:'grid', gridTemplateColumns:`220px repeat(${totalDays}, ${dayWidth}px)`, fontSize:11, color:'#475569'} },
+                      React.createElement('div', null),
+                      days.map((d,i)=>{
+                        const isFirst=d.getDate()===1;
+                        const show=isFirst||d.getDate()%5===0;
+                        return React.createElement('div', { key:'d-'+i, style:{textAlign:'center'} }, show ? (isFirst? `${monthNames[d.getMonth()]} ${d.getFullYear()}` : d.getDate()) : '' );
+                      })
+                    )
+                  ),
+                  // Tooltip
+                  tooltip.visible && (
+                    React.createElement('div', {
+                      style: {
+                        position: 'fixed',
+                        left: tooltip.x + 12,
+                        top: tooltip.y + 12,
+                        background: 'rgba(30,41,59,0.95)',
+                        color: '#fff',
+                        padding: '8px 12px',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        whiteSpace: 'pre-line',
+                        zIndex: 9999,
+                        pointerEvents: 'none',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                      }
+                    }, tooltip.text)
+                  ),
+                  // Таблица задач
+                  React.createElement('div', null,
+                    React.createElement('div', { className: 'font-bold my-2' }, 'Задачи'),
+                    React.createElement('div', { className: 'overflow-x-auto border border-gray-200 rounded-lg' },
+                      React.createElement('table', { className: 'min-w-[1000px] text-xs', style: {tableLayout:'fixed'} },
+                        React.createElement('thead', { className: 'bg-gray-50 sticky top-0 z-10' },
+                          React.createElement('tr', null,
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-32' }, 'Сотрудник'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-20' }, 'Тип'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-56' }, 'Описание'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-24' }, 'Дата начала'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-24' }, 'Дата окончания'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-20' }, 'Статус'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-40' }, 'Действия'),
+                            React.createElement('th', { className: 'border border-gray-200 px-2 py-1 w-40' }, 'Комментарии')
+                          )
+                        ),
+                        React.createElement('tbody', null,
+                          filteredItems.map(it=>{
+                            const st=statusOf(it,today);
+                            return React.createElement('tr', { key: it.id },
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1 truncate', title: it.employee }, it.employee),
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1 truncate', title: it.type }, it.type),
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1 truncate', title: it.title }, it.title),
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1' },
+                                React.createElement('input', {
+                                  type: 'date',
+                                  className: 'w-full p-1 border border-gray-200 rounded',
+                                  value: it.start,
+                                  onChange: e => setItems(items.map(x => x.id === it.id ? { ...x, start: e.target.value } : x)),
+                                  style: { minWidth: 110 }
+                                })
+                              ),
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1' },
+                                React.createElement('input', {
+                                  type: 'date',
+                                  className: 'w-full p-1 border border-gray-200 rounded',
+                                  value: it.end,
+                                  onChange: e => setItems(items.map(x => x.id === it.id ? { ...x, end: e.target.value } : x)),
+                                  style: { minWidth: 110 }
+                                })
+                              ),
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1' }, st),
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1' },
+                                React.createElement('div', { className: 'flex gap-1 flex-wrap' },
+                                  React.createElement('button', { className: 'bg-blue-500 text-white rounded px-2 py-1 text-xs', onClick:()=>resumeItem(it.id) }, 'Возобновить'),
+                                  React.createElement('button', { className: 'bg-blue-500 text-white rounded px-2 py-1 text-xs', onClick:()=>makeActive(it.id) }, 'Активная'),
+                                  React.createElement('button', { className: 'bg-red-500 text-white rounded px-2 py-1 text-xs', onClick:()=>markDone(it.id) }, 'Завершить'),
+                                  React.createElement('button', { className: 'bg-red-600 text-white rounded px-2 py-1 text-xs', onClick:()=>deleteItem(it.id) }, 'Удалить')
+                                )
+                              ),
+                              React.createElement('td', { className: 'border border-gray-200 px-2 py-1 truncate' },
+                                React.createElement('input', {
+                                  className: 'w-full p-1 border border-gray-200 rounded',
+                                  value: it.comment||'',
+                                  onChange: e=>setItems(items.map(x=>x.id===it.id?{...x, comment:e.target.value}:x)),
+                                  title: it.comment||'',
+                                  placeholder: 'Комментарий'
+                                })
+                              )
+                            );
+                          })
+                        )
+                      )
+                    )
+                  )
                 )
               )
             )
@@ -120,7 +385,6 @@
         )
       );
     }
-
     ReactDOM.render(React.createElement(App), document.getElementById('root'));
   </script>
 </body>
