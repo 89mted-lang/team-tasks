@@ -1,41 +1,16 @@
 const express = require('express');
+const path = require('path');
 const app = express();
-const Database = require("@replit/database");
-const db = new Database();
+const PORT = process.env.PORT || 10000;
 
-app.use(express.json());
-app.use(express.static('public'));
+// Показывать файлы из папки public
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Получить все задачи
-app.get('/api/tasks', async (req, res) => {
-  const tasks = await db.get("tasks") || [];
-  res.json(tasks);
+// Если кто-то заходит на сайт — показывать public/index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Добавить задачу
-app.post('/api/tasks', async (req, res) => {
-  const tasks = await db.get("tasks") || [];
-  const newTask = { ...req.body, id: Date.now() };
-  tasks.push(newTask);
-  await db.set("tasks", tasks);
-  res.json(newTask);
+app.listen(PORT, () => {
+  console.log(`Server started on ${PORT}`);
 });
-
-// Удалить задачу
-app.delete('/api/tasks/:id', async (req, res) => {
-  let tasks = await db.get("tasks") || [];
-  tasks = tasks.filter(t => t.id != req.params.id);
-  await db.set("tasks", tasks);
-  res.sendStatus(204);
-});
-
-// Редактировать задачу
-app.put('/api/tasks/:id', async (req, res) => {
-  let tasks = await db.get("tasks") || [];
-  tasks = tasks.map(t => t.id == req.params.id ? { ...t, ...req.body } : t);
-  await db.set("tasks", tasks);
-  res.json(tasks.find(t => t.id == req.params.id));
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Server started on ' + PORT));
