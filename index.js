@@ -16,9 +16,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server started on ${PORT}`);
-});
+app.listen(10000, () => console.log('Server started on 10000'));
 const fs = require('fs');
 const TASKS_FILE = path.join(__dirname, 'tasks.json');
 

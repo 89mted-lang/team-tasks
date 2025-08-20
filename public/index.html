@@ -75,12 +75,12 @@
       }
 
       // --- ГЛАВНОЕ: теперь задачи с сервера ---
-      const [items, setItems] = useState([]);
-      useEffect(() => {
-        fetch('/api/tasks')
-          .then(res => res.json())
-          .then(data => setItems(data));
-      }, []);
+      const [items, setItems] = React.useState([]);
+React.useEffect(() => {
+  fetch('/api/tasks')
+    .then(res => res.json())
+    .then(data => setItems(data));
+}, []);
 
       // Фильтры с localStorage
       const [filterEmp,setFilterEmp]=useState(localStorage.getItem('flt_emp')||'Все');
